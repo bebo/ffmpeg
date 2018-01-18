@@ -203,7 +203,13 @@ target(link_target_type, "ffmpeg_internal") {
   # So we can append below and assume they're defined.
   cflags = []
   ldflags = []
-  libs = []
+  libs = [
+    "//third_party/x264/build/lib/libx264.lib",
+  ]
+  include_dirs += [ 
+    "//third_party/x264/build/include",
+  ]
+
   deps = [
     ":ffmpeg_features",
     "//third_party/opus",
@@ -419,6 +425,12 @@ if (is_component_ffmpeg) {
 
     # So we can append below and assume they're defined.
     ldflags = []
+
+    if (is_mac) {
+      ldflags += [
+        "-Wl,-install_name,@loader_path/../libffmpeg.dylib"
+      ]
+    }
 
     if (is_posix && !is_mac) {
       # Fixes warnings PIC relocation when building as component.

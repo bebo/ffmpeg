@@ -364,6 +364,12 @@ def main(argv):
       '--enable-demuxer=ogg,matroska,wav,flac',
       '--enable-parser=opus,vorbis,flac',
 
+      # x264
+      '--enable-gpl',
+      '--enable-libx264',
+      '--extra-cflags=-I' + os.path.join(CHROMIUM_ROOT_DIR,
+                                         'third_party/x264/build/include'),
+
       # Setup include path so Chromium's libopus can be used.
       '--extra-cflags=-I' + os.path.join(CHROMIUM_ROOT_DIR,
                                          'third_party/opus/src/include'),
@@ -603,6 +609,8 @@ def main(argv):
         '--cpu=opteron',  # Enable HAVE_FAST_CMOV and disable HAVE_FAST_CLZ.
         '--enable-yasm',
         '--extra-cflags=-I' + os.path.join(FFMPEG_DIR, 'chromium/include/win'),
+        '--extra-ldflags=-LIBPATH:' + os.path.join(CHROMIUM_ROOT_DIR,
+            'third_party/x264/build/lib'),
     ])
 
     if 'CYGWIN_NT' in platform.system():
