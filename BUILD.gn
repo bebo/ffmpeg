@@ -439,6 +439,10 @@ if (is_component_ffmpeg) {
       sources = [
         "$target_gen_dir/ffmpeg.def",
       ]
+
+      ldflags += [
+      "/NODEFAULTLIB:libcmt.lib",
+      ]
     }
   }
 } else {
