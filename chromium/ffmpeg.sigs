@@ -5,7 +5,16 @@
 //------------------------------------------------
 // Functions from avcodec used in chromium code.
 //------------------------------------------------
+
+void avcodec_register_all(void);
 AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);
+int avcodec_receive_packet(AVCodecContext *avctx, AVPacket *avpkt);
+int avcodec_send_frame(AVCodecContext *avctx, const AVFrame *frame);
+AVCodec *avcodec_find_encoder_by_name(const char *name);
+int av_opt_set(void *obj, const char *name, const char *val, int search_flags);
+int av_opt_set_int(void *obj, const char *name, int64_t val, int search_flags);
+int av_frame_get_buffer(AVFrame *frame, int align);
+
 void avcodec_free_context(AVCodecContext **avctx);
 AVCodec *avcodec_find_decoder(enum AVCodecID id);
 int av_new_packet(AVPacket *pkt, int size);
