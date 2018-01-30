@@ -202,7 +202,7 @@ static void reconfig_encoder(AVCodecContext *ctx, const AVFrame *frame)
 
   if (x4->avcintra_class < 0) {
 
-    BOOL reconfig = 0;
+    int reconfig = 0;
 
     if (x4->params.b_interlaced && x4->params.b_tff != frame->top_field_first) {
 
