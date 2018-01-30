@@ -370,7 +370,12 @@ def main(argv):
       '--extra-cflags=-I' + os.path.join(CHROMIUM_ROOT_DIR,
                                          'third_party/x264/build/include'),
 
-      '--enable-encoder=libx264',
+      '--enable-encoder=libx264,nvenc',
+
+      # NVENC
+      '--enable-nvenc',
+      '--enable-cuda',
+      '--enable-nonfree',
 
       # Setup include path so Chromium's libopus can be used.
       '--extra-cflags=-I' + os.path.join(CHROMIUM_ROOT_DIR,
