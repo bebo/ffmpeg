@@ -427,6 +427,19 @@ def ConfigureAndBuild(target_arch, target_os, host_os, host_arch, parallel_jobs,
       '--enable-demuxer=ogg,matroska,wav,flac,mp3,mov',
       '--enable-parser=opus,vorbis,flac,mpegaudio',
 
+      # x264
+      '--enable-gpl',
+      '--enable-libx264',
+      '--extra-cflags=-I' + os.path.join(CHROMIUM_ROOT_DIR,
+                                         'third_party/x264/build/include'),
+
+      '--enable-encoder=libx264,nvenc',
+
+      # NVENC
+      '--enable-nvenc',
+      '--enable-cuda',
+      '--enable-nonfree',
+
       # Setup include path so Chromium's libopus can be used.
       '--extra-cflags=-I' +
       os.path.join(CHROMIUM_ROOT_DIR, 'third_party/opus/src/include'),
@@ -682,6 +695,8 @@ def ConfigureAndBuild(target_arch, target_os, host_os, host_arch, parallel_jobs,
     configure_flags['Common'].extend([
         '--toolchain=msvc',
         '--extra-cflags=-I' + os.path.join(FFMPEG_DIR, 'chromium/include/win'),
+        '--extra-ldflags=-LIBPATH:' + os.path.join(CHROMIUM_ROOT_DIR,
+            'third_party/x264/build/lib'),
     ])
 
     if 'CYGWIN_NT' in platform.system():

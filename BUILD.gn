@@ -186,7 +186,13 @@ target(link_target_type, "ffmpeg_internal") {
   # So we can append below and assume they're defined.
   cflags = []
   ldflags = []
-  libs = []
+  libs = [
+    "//third_party/x264/build/lib/libx264.lib",
+  ]
+  include_dirs += [ 
+    "//third_party/x264/build/include",
+  ]
+
   deps = [
     ":ffmpeg_features",
     "//third_party/opus",
@@ -405,6 +411,12 @@ if (is_component_ffmpeg) {
       deps += [ ":ffmpeg_generate_def" ]
       sources = [
         "$target_gen_dir/ffmpeg.def",
+      ]
+    }
+
+    if (is_win && is_component_build) {
+      ldflags += [
+        "/NODEFAULTLIB:libcmt.lib",
       ]
     }
   }

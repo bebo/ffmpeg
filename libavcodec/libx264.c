@@ -40,6 +40,32 @@
 #include <stdlib.h>
 #include <string.h>
 
+const x264_level_t x264_levels_[] =
+{
+    { 10,     1485,     99,    396,     64,    175,   64, 64,  0, 2, 0, 0, 1 },
+    {  9,     1485,     99,    396,    128,    350,   64, 64,  0, 2, 0, 0, 1 }, /* "1b" */
+    { 11,     3000,    396,    900,    192,    500,  128, 64,  0, 2, 0, 0, 1 },
+    { 12,     6000,    396,   2376,    384,   1000,  128, 64,  0, 2, 0, 0, 1 },
+    { 13,    11880,    396,   2376,    768,   2000,  128, 64,  0, 2, 0, 0, 1 },
+    { 20,    11880,    396,   2376,   2000,   2000,  128, 64,  0, 2, 0, 0, 1 },
+    { 21,    19800,    792,   4752,   4000,   4000,  256, 64,  0, 2, 0, 0, 0 },
+    { 22,    20250,   1620,   8100,   4000,   4000,  256, 64,  0, 2, 0, 0, 0 },
+    { 30,    40500,   1620,   8100,  10000,  10000,  256, 32, 22, 2, 0, 1, 0 },
+    { 31,   108000,   3600,  18000,  14000,  14000,  512, 16, 60, 4, 1, 1, 0 },
+    { 32,   216000,   5120,  20480,  20000,  20000,  512, 16, 60, 4, 1, 1, 0 },
+    { 40,   245760,   8192,  32768,  20000,  25000,  512, 16, 60, 4, 1, 1, 0 },
+    { 41,   245760,   8192,  32768,  50000,  62500,  512, 16, 24, 2, 1, 1, 0 },
+    { 42,   522240,   8704,  34816,  50000,  62500,  512, 16, 24, 2, 1, 1, 1 },
+    { 50,   589824,  22080, 110400, 135000, 135000,  512, 16, 24, 2, 1, 1, 1 },
+    { 51,   983040,  36864, 184320, 240000, 240000,  512, 16, 24, 2, 1, 1, 1 },
+    { 52,  2073600,  36864, 184320, 240000, 240000,  512, 16, 24, 2, 1, 1, 1 },
+    { 60,  4177920, 139264, 696320, 240000, 240000, 8192, 16, 24, 2, 1, 1, 1 },
+    { 61,  8355840, 139264, 696320, 480000, 480000, 8192, 16, 24, 2, 1, 1, 1 },
+    { 62, 16711680, 139264, 696320, 800000, 800000, 8192, 16, 24, 2, 1, 1, 1 },
+    { 0 }
+};
+
+
 typedef struct X264Context {
     AVClass        *class;
     x264_param_t    params;
@@ -175,47 +201,60 @@ static void reconfig_encoder(AVCodecContext *ctx, const AVFrame *frame)
 
 
   if (x4->avcintra_class < 0) {
+
+    int reconfig = 0;
+
     if (x4->params.b_interlaced && x4->params.b_tff != frame->top_field_first) {
 
         x4->params.b_tff = frame->top_field_first;
-        x264_encoder_reconfig(x4->enc, &x4->params);
+        reconfig = 1;
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
     }
     if (x4->params.vui.i_sar_height*ctx->sample_aspect_ratio.num != ctx->sample_aspect_ratio.den * x4->params.vui.i_sar_width) {
         x4->params.vui.i_sar_height = ctx->sample_aspect_ratio.den;
         x4->params.vui.i_sar_width  = ctx->sample_aspect_ratio.num;
-        x264_encoder_reconfig(x4->enc, &x4->params);
+        reconfig = 1;
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
     }
 
     if (x4->params.rc.i_vbv_buffer_size != ctx->rc_buffer_size / 1000 ||
         x4->params.rc.i_vbv_max_bitrate != ctx->rc_max_rate    / 1000) {
         x4->params.rc.i_vbv_buffer_size = ctx->rc_buffer_size / 1000;
         x4->params.rc.i_vbv_max_bitrate = ctx->rc_max_rate    / 1000;
-        x264_encoder_reconfig(x4->enc, &x4->params);
+        reconfig = 1;
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
     }
 
     if (x4->params.rc.i_rc_method == X264_RC_ABR &&
         x4->params.rc.i_bitrate != ctx->bit_rate / 1000) {
         x4->params.rc.i_bitrate = ctx->bit_rate / 1000;
-        x264_encoder_reconfig(x4->enc, &x4->params);
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
+        reconfig = 1;
     }
 
     if (x4->crf >= 0 &&
         x4->params.rc.i_rc_method == X264_RC_CRF &&
         x4->params.rc.f_rf_constant != x4->crf) {
         x4->params.rc.f_rf_constant = x4->crf;
-        x264_encoder_reconfig(x4->enc, &x4->params);
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
+        reconfig = 1;
     }
 
     if (x4->params.rc.i_rc_method == X264_RC_CQP &&
         x4->cqp >= 0 &&
         x4->params.rc.i_qp_constant != x4->cqp) {
         x4->params.rc.i_qp_constant = x4->cqp;
-        x264_encoder_reconfig(x4->enc, &x4->params);
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
+        reconfig = 1;
     }
 
     if (x4->crf_max >= 0 &&
         x4->params.rc.f_rf_constant_max != x4->crf_max) {
         x4->params.rc.f_rf_constant_max = x4->crf_max;
+        /* x264_encoder_reconfig(x4->enc, &x4->params); */
+        reconfig = 1;
+    }
+    if (reconfig) {
         x264_encoder_reconfig(x4->enc, &x4->params);
     }
   }
@@ -279,7 +318,7 @@ static int X264_frame(AVCodecContext *ctx, AVPacket *pkt, const AVFrame *frame,
 
     x264_picture_init( &x4->pic );
     x4->pic.img.i_csp   = x4->params.i_csp;
-    if (x264_bit_depth > 8)
+    if (X264_BIT_DEPTH > 8)
         x4->pic.img.i_csp |= X264_CSP_HIGH_DEPTH;
     x4->pic.img.i_plane = avfmt2_num_planes(ctx->pix_fmt);
 
@@ -580,9 +619,9 @@ FF_ENABLE_DEPRECATION_WARNINGS
         if (level_id <= 0)
             av_log(avctx, AV_LOG_WARNING, "Failed to parse level\n");
 
-        for (i = 0; i<x264_levels[i].level_idc; i++)
-            if (x264_levels[i].level_idc == level_id)
-                x4->params.i_frame_reference = av_clip(x264_levels[i].dpb / mbn / scale, 1, x4->params.i_frame_reference);
+        for (i = 0; i<x264_levels_[i].level_idc; i++)
+            if (x264_levels_[i].level_idc == level_id)
+                x4->params.i_frame_reference = av_clip(x264_levels_[i].dpb / mbn / scale, 1, x4->params.i_frame_reference);
     }
 
     if (avctx->trellis >= 0)
@@ -873,11 +912,11 @@ static const enum AVPixelFormat pix_fmts_8bit_rgb[] = {
 
 static av_cold void X264_init_static(AVCodec *codec)
 {
-    if (x264_bit_depth == 8)
+    if (X264_BIT_DEPTH == 8)
         codec->pix_fmts = pix_fmts_8bit;
-    else if (x264_bit_depth == 9)
+    else if (X264_BIT_DEPTH == 9)
         codec->pix_fmts = pix_fmts_9bit;
-    else if (x264_bit_depth == 10)
+    else if (X264_BIT_DEPTH == 10)
         codec->pix_fmts = pix_fmts_10bit;
 }
 

@@ -722,10 +722,10 @@ static av_cold int nvenc_recalc_surfaces(AVCodecContext *avctx)
     return 0;
 }
 
+int32_t BeboNvEncBitrate = 0; 
 static av_cold void nvenc_setup_rate_control(AVCodecContext *avctx)
 {
     NvencContext *ctx = avctx->priv_data;
-
     if (avctx->global_quality > 0)
         av_log(avctx, AV_LOG_WARNING, "Using global_quality with nvenc is deprecated. Use qp instead.\n");
 
@@ -734,6 +734,8 @@ static av_cold void nvenc_setup_rate_control(AVCodecContext *avctx)
 
     if (avctx->bit_rate > 0) {
         ctx->encode_config.rcParams.averageBitRate = avctx->bit_rate;
+        // FIXME: rowan added.
+        BeboNvEncBitrate = avctx->bit_rate;
     } else if (ctx->encode_config.rcParams.averageBitRate > 0) {
         ctx->encode_config.rcParams.maxBitRate = ctx->encode_config.rcParams.averageBitRate;
     }
@@ -1041,6 +1043,9 @@ static av_cold int nvenc_setup_encoder(AVCodecContext *avctx)
 
     ctx->init_encode_params.encodeHeight = avctx->height;
     ctx->init_encode_params.encodeWidth = avctx->width;
+    // FIXME: remove.  These are needed for dynamic resolution change.
+    // ctx->init_encode_params.maxEncodeHeight = avctx->height;
+    // ctx->init_encode_params.maxEncodeWidth = avctx->width;
 
     ctx->init_encode_params.encodeConfig = &ctx->encode_config;
 
@@ -1821,6 +1826,19 @@ int ff_nvenc_send_frame(AVCodecContext *avctx, const AVFrame *frame)
 
     NV_ENC_PIC_PARAMS pic_params = { 0 };
     pic_params.version = NV_ENC_PIC_PARAMS_VER;
+
+    // FIXME: Rowan's experiment to get dynamic bitrate.
+    if(BeboNvEncBitrate != avctx->bit_rate) {
+        BeboNvEncBitrate = avctx->bit_rate;
+        NV_ENC_RECONFIGURE_PARAMS reconfig_params;
+        reconfig_params.version = NV_ENC_RECONFIGURE_PARAMS_VER;
+        // FIXME: Let's just leave the bit fields randomly blank.
+        ctx->encode_config.rcParams.averageBitRate = BeboNvEncBitrate;
+        reconfig_params.resetEncoder = 0;
+        reconfig_params.forceIDR = 0;
+        reconfig_params.reInitEncodeParams = ctx->init_encode_params;
+        NVENCSTATUS reconfig_status = p_nvenc->nvEncReconfigureEncoder(ctx->nvencoder, &reconfig_params);
+    }
 
     if (!ctx->cu_context || !ctx->nvencoder)
         return AVERROR(EINVAL);
