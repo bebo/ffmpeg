@@ -18,12 +18,14 @@ if (is_win && current_cpu == "x64" && ffmpeg_branding == "Chrome") {
   ffmpeg_c_sources += [
     "libavcodec/aac_ac3_parser.c",
     "libavcodec/aac_parser.c",
-    "libavcodec/aacadtsdec.c",
     "libavcodec/aacps_float.c",
     "libavcodec/aacpsdsp_float.c",
     "libavcodec/aacsbr.c",
     "libavcodec/aactab.c",
+    "libavcodec/ac3_parser.c",
     "libavcodec/ac3tab.c",
+    "libavcodec/adts_header.c",
+    "libavcodec/adts_parser.c",
     "libavcodec/allcodecs.c",
     "libavcodec/autorename_libavcodec_aacdec.c",
     "libavcodec/autorename_libavcodec_flacdec.c",
@@ -289,16 +291,6 @@ if (is_win && current_cpu == "x64" && ffmpeg_branding == "Chrome") {
     "libavutil/x86/emms.asm",
     "libavutil/x86/float_dsp.asm",
     "libavutil/x86/lls.asm",
-  ]
-}
-
-if (use_linux_config && current_cpu == "mips64el" && ffmpeg_branding == "ChromeOS") {
-  ffmpeg_c_sources += [
-    "libavcodec/mips/acelp_filters_mips.c",
-    "libavcodec/mips/acelp_vectors_mips.c",
-    "libavcodec/mips/amrwbdec_mips.c",
-    "libavcodec/mips/celp_filters_mips.c",
-    "libavcodec/mips/celp_math_mips.c",
   ]
 }
 
