@@ -65,6 +65,7 @@ int64_t av_rescale_q(int64_t a, AVRational bq, AVRational cq);
 void *av_malloc(size_t size);
 void av_free(void *ptr);
 void av_log_set_level(int level);
+void av_log_set_callback(AVLogCallback callback);
 int av_dict_set(AVDictionary **pm, const char *key, const char *value, int flags);
 int av_dict_set_int(AVDictionary **pm, const char *key, int64_t value, int flags);
 void av_dict_free(AVDictionary **m);
