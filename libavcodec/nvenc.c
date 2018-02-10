@@ -1823,22 +1823,31 @@ int ff_nvenc_send_frame(AVCodecContext *avctx, const AVFrame *frame)
     if ((avctx->bit_rate > 0 &&
          ctx->encode_config.rcParams.averageBitRate != avctx->bit_rate) ||
         (avctx->rc_max_rate > 0 &&
-         ctx->encode_config.rcParams.maxBitRate != avctx->rc_max_rate)) {
+         ctx->encode_config.rcParams.maxBitRate != avctx->rc_max_rate) ||
+        (ctx->init_encode_params.frameRateDen != avctx->time_base.num * avctx->ticks_per_frame) ||
+        (ctx->init_encode_params.frameRateNum != avctx->time_base.den)) {
 
         if (avctx->bit_rate > 0) {
             ctx->encode_config.rcParams.averageBitRate = avctx->bit_rate;
         } else if (ctx->encode_config.rcParams.averageBitRate > 0) {
-                ctx->encode_config.rcParams.maxBitRate = ctx->encode_config.rcParams.averageBitRate;
+            ctx->encode_config.rcParams.maxBitRate = ctx->encode_config.rcParams.averageBitRate;
         }
 
         if (avctx->rc_max_rate > 0) {
             ctx->encode_config.rcParams.maxBitRate = avctx->rc_max_rate;
         }
 
+        if (avctx->rc_buffer_size > 0) {
+            ctx->encode_config.rcParams.vbvBufferSize = avctx->rc_buffer_size;
+        }
+
+        ctx->init_encode_params.frameRateNum = avctx->time_base.den;
+        ctx->init_encode_params.frameRateDen = avctx->time_base.num * avctx->ticks_per_frame;
+
         NV_ENC_RECONFIGURE_PARAMS reconfig_params;
         reconfig_params.version = NV_ENC_RECONFIGURE_PARAMS_VER;
         reconfig_params.resetEncoder = 0;
-        reconfig_params.forceIDR = 0;
+        reconfig_params.forceIDR = frame->key_frame;
         reconfig_params.reInitEncodeParams = ctx->init_encode_params;
         NVENCSTATUS reconfig_status = p_nvenc->nvEncReconfigureEncoder(ctx->nvencoder, &reconfig_params);
     }
